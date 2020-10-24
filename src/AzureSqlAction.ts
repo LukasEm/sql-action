@@ -84,10 +84,10 @@ export default class AzureSqlAction {
 
         let files = fs.readdirSync(inputs.sqlFolder, { withFileTypes: true });
 
-        files.forEach(async file => {
+        for (let file of files) {
             let filePath = inputs.sqlFolder + '/' + file.name;
             await exec.exec(`"${sqlCmdPath}" -S ${inputs.serverName} -d ${inputs.connectionString.database} -U "${inputs.connectionString.userId}" -P "${inputs.connectionString.password}" -i ${filePath} ${inputs.additionalArguments}`);
-        });
+        }
 
         console.log(`Successfully executed scripts in sql folder on target database.`);
     }
