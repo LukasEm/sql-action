@@ -3,10 +3,12 @@ import * as exec from '@actions/exec';
 
 import AzureSqlActionHelper from './AzureSqlActionHelper';
 import SqlConnectionStringBuilder from './SqlConnectionStringBuilder';
+import * as fs from "fs";
 
 export enum ActionType {
     DacpacAction,
-    SqlAction
+    SqlAction,
+    FolderAction
 }
 
 export interface IActionInputs {
@@ -23,6 +25,10 @@ export interface IDacpacActionInputs extends IActionInputs {
 
 export interface ISqlActionInputs extends IActionInputs {
     sqlFile: string;
+}
+
+export interface IFolderActionInputs extends IActionInputs {
+    sqlFolder: string;
 }
 
 export enum SqlPackageAction {
@@ -48,6 +54,9 @@ export default class AzureSqlAction {
         else if (this._inputs.actionType === ActionType.SqlAction) {
             await this._executeSqlFile(this._inputs as ISqlActionInputs);
         }
+        else if (this._inputs.actionType === ActionType.FolderAction) {
+            await this._executeFolderAction(this._inputs as IFolderActionInputs);
+        }
         else {
             throw new Error(`Invalid AzureSqlAction '${this._inputs.actionType}'.`)
         }
@@ -68,6 +77,19 @@ export default class AzureSqlAction {
         await exec.exec(`"${sqlCmdPath}" -S ${inputs.serverName} -d ${inputs.connectionString.database} -U "${inputs.connectionString.userId}" -P "${inputs.connectionString.password}" -i "${inputs.sqlFile}" ${inputs.additionalArguments}`);
 
         console.log(`Successfully executed Sql file on target database.`);
+    }
+
+    private async _executeFolderAction(inputs: IFolderActionInputs) {
+        let sqlCmdPath = await AzureSqlActionHelper.getSqlCmdPath();
+
+        let files = fs.readdirSync(inputs.sqlFolder, { withFileTypes: true });
+
+        files.forEach(async file => {
+            let filePath = inputs.sqlFolder + '/' + file.name;
+            await exec.exec(`"${sqlCmdPath}" -S ${inputs.serverName} -d ${inputs.connectionString.database} -U "${inputs.connectionString.userId}" -P "${inputs.connectionString.password}" -i ${filePath} ${inputs.additionalArguments}`);
+        });
+
+        console.log(`Successfully executed scripts in sql folder on target database.`);
     }
 
     private _getSqlPackageArguments(inputs: IDacpacActionInputs) {

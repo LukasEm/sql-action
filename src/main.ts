@@ -3,7 +3,14 @@ import * as crypto from "crypto";
 import * as path from 'path';
 import { AuthorizerFactory } from "azure-actions-webclient/AuthorizerFactory";
 
-import AzureSqlAction, { IActionInputs, ISqlActionInputs, IDacpacActionInputs, ActionType, SqlPackageAction } from "./AzureSqlAction";
+import AzureSqlAction, {
+    IActionInputs,
+    ISqlActionInputs,
+    IDacpacActionInputs,
+    ActionType,
+    SqlPackageAction,
+    IFolderActionInputs
+} from "./AzureSqlAction";
 import AzureSqlResourceManager from './AzureSqlResourceManager'
 import FirewallManager from "./FirewallManager";
 import AzureSqlActionHelper from "./AzureSqlActionHelper";
@@ -20,10 +27,10 @@ export default async function run() {
         let actionName = 'AzureSqlAction';
         let userAgentString = (!!userAgentPrefix ? `${userAgentPrefix}+` : '') + `GITHUBACTIONS_${actionName}_${usrAgentRepo}`;
         core.exportVariable('AZURE_HTTP_USER_AGENT', userAgentString);
-        
+
         let inputs = getInputs();
         let azureSqlAction = new AzureSqlAction(inputs);
-        
+
         const runnerIPAddress = await SqlUtils.detectIPAddress(inputs.serverName, inputs.connectionString);
         if(runnerIPAddress) {
             let azureResourceAuthorizer = await AuthorizerFactory.getAuthorizer();
@@ -49,10 +56,10 @@ export default async function run() {
 function getInputs(): IActionInputs {
     core.debug('Get action inputs.');
     let serverName = core.getInput('server-name', { required: true });
-    
+
     let connectionString = core.getInput('connection-string', { required: true });
     let connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
-    
+
     let additionalArguments = core.getInput('arguments');
     let dacpacPackage = core.getInput('dacpac-package');
 
@@ -87,8 +94,19 @@ function getInputs(): IActionInputs {
             additionalArguments: additionalArguments
         } as ISqlActionInputs;
     }
-  
-    throw new Error('Required SQL file or DACPAC package to execute action.');
+
+    let sqlFolder = core.getInput('sql-folder')
+    if (!!sqlFolder) {
+        return {
+            serverName: serverName,
+            connectionString: connectionStringBuilder,
+            actionType: ActionType.FolderAction,
+            additionalArguments: additionalArguments,
+            sqlFolder: sqlFolder
+        } as IFolderActionInputs;
+    }
+
+    throw new Error('Required SQL file or folder or DACPAC package to execute action.');
 }
 
 run();

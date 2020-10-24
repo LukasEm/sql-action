@@ -1,5 +1,8 @@
 # GitHub Action for deploying updates to Azure SQL database
 
+Fork of https://github.com/Azure/sql-action supporting deployment of folders (all files within the folder will be executed) using sql-folder parameter.
+
+
 With the Azure SQL Action for GitHub, you can automate your workflow to deploy updates to [Azure SQL database](https://azure.microsoft.com/en-in/services/sql-database/).
 
 Get started today with a [free Azure account](https://azure.com/free/open-source)!
