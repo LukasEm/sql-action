@@ -86,7 +86,9 @@ export default class AzureSqlAction {
 
         for (let file of files) {
             let filePath = inputs.sqlFolder + '/' + file.name;
-            await exec.exec(`"${sqlCmdPath}" -S ${inputs.serverName} -d ${inputs.connectionString.database} -U "${inputs.connectionString.userId}" -P "${inputs.connectionString.password}" -i ${filePath} ${inputs.additionalArguments}`);
+            if(filePath.length > 4 && filePath.substring(filePath.length - 4, filePath.length) === '.sql'){
+                await exec.exec(`"${sqlCmdPath}" -S ${inputs.serverName} -d ${inputs.connectionString.database} -U "${inputs.connectionString.userId}" -P "${inputs.connectionString.password}" -i ${filePath} ${inputs.additionalArguments}`);
+            }
         }
 
         console.log(`Successfully executed scripts in sql folder on target database.`);
