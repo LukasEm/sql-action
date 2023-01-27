@@ -1,5 +1,5 @@
-name: 'Azure SQL Deploy (dacpac, file, folder)'
-description: 'Deploy a DACPAC or a SQL script or folder to Azure SQL database'
+name: 'Azure SQL Auto-Deploy'
+description: 'Deploy SQL script or folder to Azure SQL database'
 inputs:
   server-name:
     description: 'Name of the Azure SQL Server name, like Fabrikam.database.windows.net.'
